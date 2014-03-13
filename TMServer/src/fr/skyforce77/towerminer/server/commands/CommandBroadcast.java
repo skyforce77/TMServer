@@ -1,6 +1,4 @@
 package fr.skyforce77.towerminer.server.commands;
-import com.esotericsoftware.kryonet.Connection;
-
 import fr.skyforce77.towerminer.server.players.Player;
 import fr.skyforce77.towerminer.server.players.PlayerManager;
 
@@ -17,7 +15,7 @@ public class CommandBroadcast extends Command {
 			}
 		}
 		
-		for(Connection c : PlayerManager.getPlayers().keySet()) {
+		for(Integer c : PlayerManager.getPlayers().keySet()) {
 			PlayerManager.getPlayer(c).sendServerMessage(s);
 		}
 	}

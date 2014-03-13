@@ -6,20 +6,25 @@ import com.esotericsoftware.kryonet.Connection;
 
 public class PlayerManager {
 
-	static HashMap<Connection, Player> players = new HashMap<>();
+	static HashMap<Integer, Player> players = new HashMap<>();
 	
-	public static void onPlayerConnected(Connection c, String name) {
-		players.put(c, new Player(c,name));
+	public static void onPlayerConnected(Integer id, Connection c, String name) {
+		players.put(id, new Player(id, c, name));
 	}
 	
-	public static Player getPlayer(Connection c) {
-		if(players.containsKey(c)) {
-			return players.get(c);
+	public static void onPlayerDisconnected(Integer id) {
+		if(players.containsKey(id))
+			players.remove(id);
+	}
+	
+	public static Player getPlayer(Integer id) {
+		if(players.containsKey(id)) {
+			return players.get(id);
 		}
 		return null;
 	}
 	
-	public static HashMap<Connection, Player> getPlayers() {
+	public static HashMap<Integer, Player> getPlayers() {
 		return players;
 	}
 

@@ -1,5 +1,6 @@
 package fr.skyforce77.towerminer.server;
 
+import java.awt.Color;
 import java.awt.Point;
 import java.io.File;
 
@@ -27,17 +28,18 @@ import fr.skyforce77.towerminer.protocol.packets.Packet11ChatMessage;
 import fr.skyforce77.towerminer.protocol.packets.Packet12Popup;
 import fr.skyforce77.towerminer.protocol.packets.Packet14ServerPing;
 import fr.skyforce77.towerminer.protocol.packets.Packet15ServerInfos;
+import fr.skyforce77.towerminer.protocol.packets.Packet18ParticleEffect;
 import fr.skyforce77.towerminer.protocol.packets.Packet1Disconnecting;
+import fr.skyforce77.towerminer.protocol.packets.Packet20EntityData;
 import fr.skyforce77.towerminer.protocol.packets.Packet2BigSending;
 import fr.skyforce77.towerminer.protocol.packets.Packet3Action;
-import fr.skyforce77.towerminer.protocol.packets.Packet6Entity;
 import fr.skyforce77.towerminer.protocol.packets.Packet9MouseClick;
 import fr.skyforce77.towerminer.server.chat.ChatColor;
 import fr.skyforce77.towerminer.server.commands.CommandManager;
 import fr.skyforce77.towerminer.server.match.Match;
-import fr.skyforce77.towerminer.server.match.MatchManager;
 import fr.skyforce77.towerminer.server.players.Player;
 import fr.skyforce77.towerminer.server.players.PlayerManager;
+import fr.skyforce77.towerminer.server.threads.MainThread;
 
 public class Server implements PacketListener, ConnectionListener{
 
@@ -78,6 +80,7 @@ public class Server implements PacketListener, ConnectionListener{
 		instance = new Server();
 		try {
 			Connect.initServer();
+			new MainThread().start();
 		} catch(Exception e) {
 			System.out.println("Can't be launched, error occured");
 		}
@@ -99,12 +102,11 @@ public class Server implements PacketListener, ConnectionListener{
 				System.out.println("Player "+pack.player+" tryed connecting with protocol "+pack.version);
 				c.sendTCP(new Packet1Disconnecting("menu.mp.client.kick.version"));
 			} else {
-				System.out.println("Player "+pack.player+"("+c.getRemoteAddressTCP().getHostString()+") successfully connected");
-				PlayerManager.onPlayerConnected(c, pack.player);
-				Player pl = PlayerManager.getPlayer(c);
+				System.out.println("Player #"+c.getID()+":"+pack.player+" connected from "+c.getRemoteAddressTCP().getHostString());
+				PlayerManager.onPlayerConnected(c.getID(), c, pack.player);
+				Player pl = PlayerManager.getPlayer(c.getID());
 				if(wait == null || wait.getRed() == null) {
 					wait = new Match();
-					MatchManager.registerMatch(wait);
 					wait.setRed(pl);
 				} else {
 					wait.setBlue(pl);
@@ -113,11 +115,11 @@ public class Server implements PacketListener, ConnectionListener{
 				}
 
 				new Packet3Action("sendingmap").sendConnectionTCP(c);
-				BigSending.sendBigObject(MatchManager.getMatch(pl).map, c, new ReceivingThread() {
+				BigSending.sendBigObject(pl.getMatch().map, c, new ReceivingThread() {
 					@Override
 					public void run(int objectid) {
 						new Packet3Action("finishedsendingmap", (byte)objectid).sendConnectionTCP(c);
-						PlayerManager.getPlayer(c).enableReadyButton(false);
+						PlayerManager.getPlayer(c.getID()).enableReadyButton(false);
 					}
 				});
 			}
@@ -140,8 +142,8 @@ public class Server implements PacketListener, ConnectionListener{
 			if(pack3.action.equals("canstartgame")) {
 				//TODO assigner une partie
 			} else if(pack3.action.equals("ready")) {
-				Player pl = PlayerManager.getPlayer(c);
-				Match m = MatchManager.getMatch(pl);
+				Player pl = PlayerManager.getPlayer(c.getID());
+				Match m = pl.getMatch();
 				if(m.getRed() != null && m.getBlue() != null) {
 					new Packet12Popup("menu.mp.ready", pl.getDisplayName()).sendConnectionTCP(m.getAnother(pl).getConnection());
 					pl.setReady(true);
@@ -154,8 +156,8 @@ public class Server implements PacketListener, ConnectionListener{
 		}
 		else if(p.getId() == 9) {
 			Packet9MouseClick pack9 = (Packet9MouseClick)p;
-			final Player pl = PlayerManager.getPlayer(c);
-			final Match m = MatchManager.getMatch(pl);
+			final Player pl = PlayerManager.getPlayer(c.getID());
+			final Match m = pl.getMatch();
 			if(m.getRed() != null && m.getBlue() != null) {
 				//TODO créer les entitées ect...
 				Turret aimed = null;
@@ -174,7 +176,7 @@ public class Server implements PacketListener, ConnectionListener{
 						m.sendObject(tu, new ObjectReceiver.ReceivingThread() {
 							@Override
 							public void run(int objectid) {
-								Packet6Entity pe = new Packet6Entity();
+								Packet20EntityData pe = new Packet20EntityData();
 								pe.eid = objectid;
 								m.sendTCP(pe);
 							}
@@ -194,6 +196,7 @@ public class Server implements PacketListener, ConnectionListener{
 					}
 				}
 			} else {
+				pl.sendTCP(new Packet18ParticleEffect(pack9.x*48+24, pack9.y*48-24, Color.BLACK.getRGB(), 0));
 				pl.sendMessage(ChatColor.RED+"You can't play without partner/rival");
 			}
 		}
@@ -201,9 +204,8 @@ public class Server implements PacketListener, ConnectionListener{
 			Packet11ChatMessage pack11 = (Packet11ChatMessage)p;
 			if(pack11.response)
 				return;
-			pack11.response = true;
-			Player pl = PlayerManager.getPlayer(c);
-			Match m = MatchManager.getMatch(pl);
+			Player pl = PlayerManager.getPlayer(c.getID());
+			Match m = pl.getMatch();
 			String msg1 = ((ChatModel)pack11.getMessage().getModels().toArray()[1]).getText().replaceFirst(": ", "");
 			if(m.getRed() != null && m.getBlue() != null && !msg1.startsWith("/")) {
 				ChatMessage msg = new ChatMessage();
@@ -217,8 +219,15 @@ public class Server implements PacketListener, ConnectionListener{
 					}
 				}
 				Packet11ChatMessage chm = new Packet11ChatMessage(msg);
+				chm.response = true;
 				c.sendTCP(chm);
 				m.getAnother(pl).getConnection().sendTCP(chm);
+				
+				String s = "";
+				for(ChatModel cm : msg.getModels()) {
+					s = s+cm.getText();
+				}
+				System.out.println("["+m.getId()+"] "+s);
 			} else if(msg1.startsWith("/")) {
 				String label = msg1.replaceFirst("/", "").split(" ")[0];
 				CommandManager.onCommandTyped(pl, label, msg1.replaceFirst("/"+label, "").replaceFirst(" ", "").split(" "));
@@ -236,10 +245,10 @@ public class Server implements PacketListener, ConnectionListener{
 
 	@Override
 	public void onDisconnected(Connection c) {
-		Player p = PlayerManager.getPlayer(c);
+		Player p = PlayerManager.getPlayer(c.getID());
 		if(p != null) {
-			Match m = MatchManager.getMatch(p);
-			System.out.println("Player "+p.getClientName()+"("+c.getRemoteAddressTCP().getHostString()+") disconnected");
+			Match m = p.getMatch();
+			System.out.println("Player "+p.getClientName()+" disconnected");
 			m.getAnother(p).kick("Your partner disconnected");
 		}
 	}

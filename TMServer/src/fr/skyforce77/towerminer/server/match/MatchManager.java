@@ -1,35 +1,36 @@
 package fr.skyforce77.towerminer.server.match;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 
 import fr.skyforce77.towerminer.protocol.packets.Packet1Disconnecting;
-import fr.skyforce77.towerminer.server.players.Player;
 
 public class MatchManager {
 
-	static ArrayList<Match> matchs = new ArrayList<>();
+	static HashMap<Integer, Match> matchs = new HashMap<>();
+	static Integer count = 1;
 	
-	public static void registerMatch(Match m) {
-		matchs.add(m);
+	public static Integer registerCreatedMatch(Match m) {
+		matchs.put(count, m);
+		count++;
+		return count-1;
 	}
 	
-	public static Match getMatch(Player p) {
-		for(Match ma : matchs) {
-			if(ma.getRed().equals(p) || ma.getBlue().equals(p)) {
-				return ma;
-			}
-		}
-		return null;
+	public static Match getMatch(Integer id) {
+		return matchs.get(id);
 	}
 	
 	public static void deleteMatch(Match m) {
-		matchs.remove(m);
+		matchs.remove(m.getId());
 		if(m.getRed() != null) {
 			m.getRed().getConnection().sendTCP(new Packet1Disconnecting("Your partner disconnected!"));
 		}
 		if(m.getBlue() != null) {
 			m.getBlue().getConnection().sendTCP(new Packet1Disconnecting("Your partner disconnected!"));
 		}
+	}
+	
+	public static HashMap<Integer, Match> getMatchs() {
+		return matchs;
 	}
 
 }

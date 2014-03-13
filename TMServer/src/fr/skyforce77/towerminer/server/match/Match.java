@@ -1,5 +1,7 @@
 package fr.skyforce77.towerminer.server.match;
 
+import java.util.ArrayList;
+import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import fr.skyforce77.towerminer.entity.Mob;
@@ -14,6 +16,7 @@ public class Match {
 
 	private Player red;
 	private Player blue;
+	private Integer id = 1;
 	
 	public boolean started = false;
 	public Maps map;
@@ -22,15 +25,25 @@ public class Match {
 	public CopyOnWriteArrayList<Mob> mobs = new CopyOnWriteArrayList<>();
 
 	public Match() {
-		map = Maps.maps[0];
+		ArrayList<Maps> m = new ArrayList<>();
+		for(Maps ma : Maps.maps) {
+			if(ma != null)
+				m.add(ma);
+		}
+		map = m.get(new Random().nextInt(m.size()-1));	
+		id = MatchManager.registerCreatedMatch(this);
 	}
 	
 	public Player getAnother(Player p) {
-		if(p.equals(red)) {
+		if(p.isRed()) {
 			return blue;
 		} else {
 			return red;
 		}
+	}
+	
+	public Integer getId() {
+		return id;
 	}
 	
 	public Player getBlue() {
@@ -52,11 +65,15 @@ public class Match {
 	public void setBlue(Player p) {
 		p.sendTCP(new Packet17Player("menu.mp.blue"));
 		blue = p;
+		p.setMatch(this);
+		p.setBlue();
 	}
 	
 	public void setRed(Player p) {
 		p.sendTCP(new Packet17Player("menu.mp.red"));
 		red = p;
+		p.setMatch(this);
+		p.setRed();
 	}
 	
 	public void sendTCP(Packet p) {
@@ -79,5 +96,7 @@ public class Match {
 		if(blue != null)
 			blue.sendObject(object, thread);
 	}
+	
+	public void onTick() {}
 
 }

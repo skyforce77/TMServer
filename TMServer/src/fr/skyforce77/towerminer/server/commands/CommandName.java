@@ -1,6 +1,5 @@
 package fr.skyforce77.towerminer.server.commands;
-import com.esotericsoftware.kryonet.Connection;
-
+import fr.skyforce77.towerminer.server.chat.ChatColor;
 import fr.skyforce77.towerminer.server.players.Player;
 import fr.skyforce77.towerminer.server.players.PlayerManager;
 
@@ -11,8 +10,16 @@ public class CommandName extends Command {
 		String last = p.getDisplayName();
 		p.setDisplayName(args[0]);
 		
-		for(Connection c : PlayerManager.getPlayers().keySet()) {
-			PlayerManager.getPlayer(c).sendMessage(last+" is now know as "+p.getDisplayName());
+		ChatColor cc = ChatColor.WHITE;
+		if(p.getMatch() != null) {
+			if(p.getMatch().getBlue().equals(p)) {
+				cc = ChatColor.CYAN;
+			} else {
+				cc = ChatColor.RED;
+			}
+		}
+		for(Integer id : PlayerManager.getPlayers().keySet()) {
+			PlayerManager.getPlayer(id).sendMessage(cc+last+ChatColor.WHITE+" is now know as "+cc+p.getDisplayName());
 		}
 	}
 	

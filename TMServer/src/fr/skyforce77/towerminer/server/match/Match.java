@@ -1,9 +1,12 @@
 package fr.skyforce77.towerminer.server.match;
 
+import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import fr.skyforce77.towerminer.entity.Entity;
+import fr.skyforce77.towerminer.entity.EntityTypes;
 import fr.skyforce77.towerminer.entity.Mob;
 import fr.skyforce77.towerminer.entity.Turret;
 import fr.skyforce77.towerminer.maps.Maps;
@@ -17,12 +20,14 @@ public class Match {
 	private Player red;
 	private Player blue;
 	private Integer id = 1;
+	private int round = 0;
 	
 	public boolean started = false;
 	public Maps map;
 	
 	public CopyOnWriteArrayList<Turret> turrets = new CopyOnWriteArrayList<>();
 	public CopyOnWriteArrayList<Mob> mobs = new CopyOnWriteArrayList<>();
+	public CopyOnWriteArrayList<Entity> others = new CopyOnWriteArrayList<>();
 
 	public Match() {
 		ArrayList<Maps> m = new ArrayList<>();
@@ -44,6 +49,10 @@ public class Match {
 	
 	public Integer getId() {
 		return id;
+	}
+	
+	public int getRound() {
+		return round;
 	}
 	
 	public Player getBlue() {
@@ -97,6 +106,30 @@ public class Match {
 			blue.sendObject(object, thread);
 	}
 	
-	public void onTick() {}
+	public void onTick() {
+		if(started) {
+			if(mobs.isEmpty()) {
+				started = false;
+				round++;
+				red.setReady(false);
+				red.enableReadyButton(true);
+				blue.setReady(false);
+				blue.enableReadyButton(true);
+			} else {
+				
+			}
+		}
+	}
+	
+	public void startRound() {
+		started = true;
+		addMob(EntityTypes.COW);	
+	}
+	
+	public void addMob(EntityTypes type) {
+		Mob m = new Mob(type);
+		m.setLocation(new Point(getMap().getXDepart()*48, getMap().getYDepart()*48));
+		mobs.add(m);
+	}
 
 }

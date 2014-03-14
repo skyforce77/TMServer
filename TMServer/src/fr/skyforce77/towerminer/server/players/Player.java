@@ -127,7 +127,7 @@ public class Player {
 		Packet4RoundFinished pf = new Packet4RoundFinished();
 		pf.gold = getGolds();
 		pf.life = getLife();
-		pf.round = 0;
+		pf.round = getMatch().getRound();
 		pf.timed = timed;
 		sendTCP(pf);
 	}

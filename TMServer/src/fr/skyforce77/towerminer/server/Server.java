@@ -140,17 +140,20 @@ public class Server implements PacketListener, ConnectionListener{
 		else if(p.getId() == 3) {
 			Packet3Action pack3 = (Packet3Action)p;
 			if(pack3.action.equals("canstartgame")) {
-				//TODO assigner une partie
+				//TODO ???
 			} else if(pack3.action.equals("ready")) {
 				Player pl = PlayerManager.getPlayer(c.getID());
 				Match m = pl.getMatch();
 				if(m.getRed() != null && m.getBlue() != null) {
 					new Packet12Popup("menu.mp.ready", pl.getDisplayName()).sendConnectionTCP(m.getAnother(pl).getConnection());
 					pl.setReady(true);
+					
+					if(pl.isReady() && m.getAnother(pl).isReady()) {
+						m.startRound();
+					}
 				} else {
 					pl.enableReadyButton(false);
 					pl.sendMessage(ChatColor.RED+"You can't play without partner/rival");
-					pl.setReady(true);
 				}
 			}
 		}
@@ -159,7 +162,6 @@ public class Server implements PacketListener, ConnectionListener{
 			final Player pl = PlayerManager.getPlayer(c.getID());
 			final Match m = pl.getMatch();
 			if(m.getRed() != null && m.getBlue() != null) {
-				//TODO créer les entitées ect...
 				Turret aimed = null;
 				for(Turret en : m.turrets) {
 					if(en.getUUID() == pack9.aimed) {

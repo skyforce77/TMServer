@@ -2,6 +2,8 @@ package fr.skyforce77.towerminer.server.commands;
 
 import java.util.ArrayList;
 
+import fr.skyforce77.towerminer.protocol.chat.ChatMessage;
+import fr.skyforce77.towerminer.server.commands.Argument.ArgumentType;
 import fr.skyforce77.towerminer.server.players.Player;
 
 public class CommandHelp extends Command {
@@ -30,29 +32,38 @@ public class CommandHelp extends Command {
 			if(c.getUse() == null) {
 				p.sendMessage("- "+command);
 			} else {
-				p.sendMessage("- "+c.getUse());
+				ChatMessage message = new ChatMessage("- ");
+				message.add(c.getUse());
+				p.sendMessage(message);
 			}
 		}
 	}
 	
 	public void update() {
 		int i = 1;
+		pagesnumber = 0;
+		pages = new ArrayList<>();
 		ArrayList<String> commands = new ArrayList<>();
 		for(String command : CommandManager.getCommands()) {
-			if(i < 5) {
+			if(i < 8) {
 				commands.add(command);
+				i++;
 			} else {
 				pages.add(commands);
-				i = 1;
+				commands = new ArrayList<>();
+				commands.add(command);
+				i = 2;
 				pagesnumber++;
 			}
 		}
-		pages.add(commands);
+		if(i > 1) {
+			pages.add(commands);
+		}
 	}
 	
 	@Override
 	public void onInitialized(String label) {
-		setArguments(new Argument("page", true, true));
+		setArguments(new Argument("page", ArgumentType.Integer, true));
 	}
 	
 	@Override

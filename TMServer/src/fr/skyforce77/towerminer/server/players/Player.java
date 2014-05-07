@@ -115,6 +115,12 @@ public class Player {
 		p.sendConnectionTCP(c);
 	}
 	
+	public void sendMessage(ChatMessage message) {
+		Packet11ChatMessage p = new Packet11ChatMessage(message);
+		p.response = true;
+		p.sendConnectionTCP(c);
+	}
+	
 	public void sendPopupMessage(String message) {
 		new Packet12Popup(message).sendConnectionTCP(c);
 	}
@@ -146,12 +152,12 @@ public class Player {
 		p.sendConnectionTCP(c);
 	}
 	
-	public void sendTCP(Packet p) {
-		p.sendConnectionTCP(c);
+	public void sendTCP(Packet pa) {
+		pa.sendConnectionTCP(c);
 	}
 	
-	public void sendUDP(Packet p) {
-		p.sendConnectionUDP(c);
+	public void sendUDP(Packet pa) {
+		pa.sendConnectionUDP(c);
 	}
 	
 	public void sendObject(Object o, ReceivingThread thread) {

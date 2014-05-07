@@ -3,7 +3,7 @@ import fr.skyforce77.towerminer.server.commands.Argument.ArgumentType;
 import fr.skyforce77.towerminer.server.players.Player;
 import fr.skyforce77.towerminer.server.players.PlayerManager;
 
-public class CommandBroadcast extends Command {
+public class CommandNotif extends Command {
 
 	@Override
 	public void onTyped(Player p, String[] args) {
@@ -17,7 +17,7 @@ public class CommandBroadcast extends Command {
 		}
 		
 		for(Integer c : PlayerManager.getPlayers().keySet()) {
-			PlayerManager.getPlayer(c).sendServerMessage(s);
+			PlayerManager.getPlayer(c).sendPopupMessage(s);
 		}
 	}
 	
@@ -32,7 +32,6 @@ public class CommandBroadcast extends Command {
 	@Override
 	public void onInitialized(String label) {
 		setArguments(new Argument("text", ArgumentType.String));
-		setAlias("bc","say","server");
 	}
 
 }

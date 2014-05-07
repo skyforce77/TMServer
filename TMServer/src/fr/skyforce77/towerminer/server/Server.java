@@ -140,7 +140,7 @@ public class Server implements PacketListener, ConnectionListener{
 		else if(p.getId() == 3) {
 			Packet3Action pack3 = (Packet3Action)p;
 			if(pack3.action.equals("canstartgame")) {
-				//TODO ???
+				//TODO
 			} else if(pack3.action.equals("ready")) {
 				Player pl = PlayerManager.getPlayer(c.getID());
 				Match m = pl.getMatch();
@@ -169,11 +169,11 @@ public class Server implements PacketListener, ConnectionListener{
 					}
 				}
 				if(pack9.modifier == 16) {
-					pl.setGolds(pl.getGolds() - EntityTypes.turrets[pack9.selected].getPrice());
-					EntityTypes type = EntityTypes.turrets[pack9.selected];
+					pl.setGolds(pl.getGolds() - EntityTypes.turrets.get(pack9.selected).getPrice());
+					EntityTypes type = EntityTypes.turrets.get(pack9.selected);
 					try {
 						String s = m.getRed().equals(pl) ? "menu.mp.red" : "menu.mp.blue";
-						Turret tu = (Turret)type.getEntityClass().getConstructor(EntityTypes.class, Point.class, String.class).newInstance(EntityTypes.turrets[pack9.selected], new Point(pack9.x,pack9.y-1), s);
+						Turret tu = (Turret)type.getEntityClass().getConstructor(EntityTypes.class, Point.class, String.class).newInstance(EntityTypes.turrets.get(pack9.selected), new Point(pack9.x,pack9.y-1), s);
 						m.turrets.add(tu);
 						m.sendObject(tu, new ObjectReceiver.ReceivingThread() {
 							@Override

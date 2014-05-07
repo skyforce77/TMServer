@@ -1,5 +1,6 @@
 package fr.skyforce77.towerminer.server.commands;
 import fr.skyforce77.towerminer.server.chat.ChatColor;
+import fr.skyforce77.towerminer.server.commands.Argument.ArgumentType;
 import fr.skyforce77.towerminer.server.players.Player;
 import fr.skyforce77.towerminer.server.players.PlayerManager;
 
@@ -33,7 +34,7 @@ public class CommandName extends Command {
 	
 	@Override
 	public void onInitialized(String label) {
-		setArguments(new Argument("name", false, false));
+		setArguments(new Argument("displayname", ArgumentType.String));
 	}
 
 }

@@ -1,5 +1,6 @@
 package fr.skyforce77.towerminer.server.commands;
 
+import fr.skyforce77.towerminer.TowerMiner;
 import fr.skyforce77.towerminer.protocol.Protocol;
 import fr.skyforce77.towerminer.server.Server;
 import fr.skyforce77.towerminer.server.players.Player;
@@ -8,7 +9,9 @@ public class CommandVersion extends Command {
 
 	@Override
 	public void onTyped(Player p, String[] args) {
-		p.sendMessage("TMServer - "+Server.version+" - Protocol: "+Protocol.version);
+		p.sendMessage("TMServer: "+Server.version);
+		p.sendMessage("Protocol: "+Protocol.version);
+		p.sendMessage("TowerMiner: "+TowerMiner.version);
 	}
 	
 	@Override

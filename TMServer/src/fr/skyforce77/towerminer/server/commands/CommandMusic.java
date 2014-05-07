@@ -22,7 +22,7 @@ public class CommandMusic extends Command {
 	
 	@Override
 	public void onInitialized(String label) {
-		setArguments(new Argument("url", ArgumentType.String));
+		setArguments(new Argument("url", ArgumentType.Url));
 	}
 
 }

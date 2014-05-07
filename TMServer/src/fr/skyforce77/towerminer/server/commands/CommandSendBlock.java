@@ -2,6 +2,7 @@ package fr.skyforce77.towerminer.server.commands;
 import fr.skyforce77.towerminer.protocol.packets.Packet23BlockChange;
 import fr.skyforce77.towerminer.server.commands.Argument.ArgumentType;
 import fr.skyforce77.towerminer.server.players.Player;
+import fr.skyforce77.towerminer.server.players.PlayerManager;
 
 public class CommandSendBlock extends Command {
 
@@ -12,7 +13,9 @@ public class CommandSendBlock extends Command {
 		int id = Integer.parseInt(args[2]);
 		int data = Integer.parseInt(args[3]);
 		boolean overlay = Boolean.parseBoolean(args[4]);
-		p.sendTCP(new Packet23BlockChange(x, y, id, data, overlay));
+		for(Integer c : PlayerManager.getPlayers().keySet()) {
+			PlayerManager.getPlayer(c).sendTCP(new Packet23BlockChange(x, y, id, data, overlay));
+		}
 	}
 	
 	@Override

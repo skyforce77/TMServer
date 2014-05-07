@@ -33,22 +33,25 @@ import fr.skyforce77.towerminer.protocol.packets.Packet1Disconnecting;
 import fr.skyforce77.towerminer.protocol.packets.Packet20EntityData;
 import fr.skyforce77.towerminer.protocol.packets.Packet2BigSending;
 import fr.skyforce77.towerminer.protocol.packets.Packet3Action;
+import fr.skyforce77.towerminer.protocol.packets.Packet6EntityCreate;
 import fr.skyforce77.towerminer.protocol.packets.Packet9MouseClick;
+import fr.skyforce77.towerminer.ressources.RessourcesManager;
 import fr.skyforce77.towerminer.server.chat.ChatColor;
 import fr.skyforce77.towerminer.server.commands.CommandManager;
 import fr.skyforce77.towerminer.server.match.Match;
 import fr.skyforce77.towerminer.server.players.Player;
 import fr.skyforce77.towerminer.server.players.PlayerManager;
+import fr.skyforce77.towerminer.server.save.TMImage;
+import fr.skyforce77.towerminer.server.save.TMStorage;
 import fr.skyforce77.towerminer.server.threads.MainThread;
 
 public class Server implements PacketListener, ConnectionListener{
 
 	public static Server instance;
-	public static String version = "Alpha 0.1";
-	static String name = "Test server";
-	static String message = "motd";
-	static File folder;
-	static Match wait = null;
+	public static String version = "Alpha 0.2";
+	public static File folder;
+	public static Match wait = null;
+	public static TMStorage storage = new TMStorage();
 
 	public static void main(String[] args) {
 		System.out.println("Server version: "+version);
@@ -75,6 +78,17 @@ public class Server implements PacketListener, ConnectionListener{
 				System.out.println("Map "+m.getName()+" loaded as #"+i);
 			}
 		}
+		
+		System.out.println("Loading storage...");
+		File stor = new File(folder, "/storage.data");
+		if(stor.exists()) {
+			TMStorage store = TMStorage.Deserialize(stor.getAbsolutePath());
+			storage = store;
+		} else {
+			storage.addObject("icon", new TMImage(RessourcesManager.getBufferedTexture("arrow")));
+			storage.addString("name", "TMServer "+version);
+			storage.addString("motd", "Welcome to the default TowerMiner server");
+		}
 
 		CommandManager.createCommands();
 		instance = new Server();
@@ -86,6 +100,16 @@ public class Server implements PacketListener, ConnectionListener{
 		}
 		ListenersManager.register(instance);
 		System.out.println("Successfully launched");
+	}
+	
+	public static void stop() {
+		save();
+		System.exit(1);
+	}
+	
+	public static void save() {
+		File stor = new File(folder, "/storage.data");
+		storage.Serialize(stor.getAbsolutePath());
 	}
 
 	@Override
@@ -120,6 +144,7 @@ public class Server implements PacketListener, ConnectionListener{
 					public void run(int objectid) {
 						new Packet3Action("finishedsendingmap", (byte)objectid).sendConnectionTCP(c);
 						PlayerManager.getPlayer(c.getID()).enableReadyButton(false);
+						PlayerManager.getPlayer(c.getID()).sendServerPopup();
 					}
 				});
 			}
@@ -175,6 +200,7 @@ public class Server implements PacketListener, ConnectionListener{
 						String s = m.getRed().equals(pl) ? "menu.mp.red" : "menu.mp.blue";
 						Turret tu = (Turret)type.getEntityClass().getConstructor(EntityTypes.class, Point.class, String.class).newInstance(EntityTypes.turrets.get(pack9.selected), new Point(pack9.x,pack9.y-1), s);
 						m.turrets.add(tu);
+						m.sendTCP(new Packet6EntityCreate(tu.getUUID(), tu.getType().getId(), tu.getBlockLocation(), tu.getOwner()));
 						m.sendObject(tu, new ObjectReceiver.ReceivingThread() {
 							@Override
 							public void run(int objectid) {
@@ -209,7 +235,16 @@ public class Server implements PacketListener, ConnectionListener{
 			Player pl = PlayerManager.getPlayer(c.getID());
 			Match m = pl.getMatch();
 			String msg1 = ((ChatModel)pack11.getMessage().getModels().toArray()[1]).getText().replaceFirst(": ", "");
-			if(m.getRed() != null && m.getBlue() != null && !msg1.startsWith("/")) {
+			if(msg1.startsWith("/")) {
+				String label = msg1.replaceFirst("/", "").split(" ")[0];
+				CommandManager.onCommandTyped(pl, label, msg1.replaceFirst("/"+label, "").replaceFirst(" ", "").split(" "));
+			} else if(msg1.contains(" ") && CommandManager.isCommand(msg1.split(" ")[0])) {
+				String label = msg1.split(" ")[0];
+				CommandManager.onCommandTyped(pl, label, msg1.replaceFirst(label, "").replaceFirst(" ", "").split(" "));
+			} else if(CommandManager.isCommand(msg1)) {
+				String label = msg1;
+				CommandManager.onCommandTyped(pl, label, msg1.replaceFirst(label, "").split(" "));
+			} else if(m.getRed() != null && m.getBlue() != null) {
 				ChatMessage msg = new ChatMessage();
 				for(ChatModel mo : pack11.getMessage().getModels()) {
 					if(mo.getText().equals(pl.getClientName())) {
@@ -230,15 +265,12 @@ public class Server implements PacketListener, ConnectionListener{
 					s = s+cm.getText();
 				}
 				System.out.println("["+m.getId()+"] "+s);
-			} else if(msg1.startsWith("/")) {
-				String label = msg1.replaceFirst("/", "").split(" ")[0];
-				CommandManager.onCommandTyped(pl, label, msg1.replaceFirst("/"+label, "").replaceFirst(" ", "").split(" "));
 			} else {
 				pl.sendMessage(ChatColor.RED+"You can't talk without partner/rival");
 			}
 		}
 		else if(p.getId() == 14) {
-			new Packet15ServerInfos(((Packet14ServerPing)p).name, message).sendConnectionTCP(c);
+			new Packet15ServerInfos(((Packet14ServerPing)p).name, storage.getString("motd")).sendConnectionTCP(c);
 		}
 	}
 

@@ -14,12 +14,15 @@ public class CommandManager {
 	public static void createCommands() {
 		register("help", new CommandHelp());
 		register("stop", new CommandStop());
+		register("save", new CommandSave());
 		register("version", new CommandVersion());
 		register("broadcast", new CommandBroadcast());
 		register("name", new CommandName());
 		register("music", new CommandMusic());
 		register("notif", new CommandNotif());
 		register("sendblock", new CommandSendBlock());
+		register("seticon", new CommandSetIcon());
+		register("setdisplay", new CommandSetDisplay());
 	}
 	
 	public static void register(String label, Command command) {

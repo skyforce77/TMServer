@@ -2,16 +2,13 @@ package fr.skyforce77.towerminer.server.commands;
 
 import fr.skyforce77.towerminer.server.Server;
 import fr.skyforce77.towerminer.server.players.Player;
-import fr.skyforce77.towerminer.server.players.PlayerManager;
 
-public class CommandStop extends Command {
+public class CommandSave extends Command {
 
 	@Override
 	public void onTyped(Player p, String[] args) {
-		for(Integer i : PlayerManager.getPlayers().keySet()) {
-			PlayerManager.getPlayer(i).kick("Stopping server...");
-		}
-		Server.stop();
+		p.sendMessage("Saving files...");
+		Server.save();
 	}
 	
 	@Override

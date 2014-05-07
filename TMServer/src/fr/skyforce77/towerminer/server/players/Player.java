@@ -1,6 +1,11 @@
 package fr.skyforce77.towerminer.server.players;
 
 import java.awt.Color;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.Serializable;
+
+import javax.imageio.ImageIO;
 
 import com.esotericsoftware.kryonet.Connection;
 
@@ -12,11 +17,14 @@ import fr.skyforce77.towerminer.protocol.packets.Packet;
 import fr.skyforce77.towerminer.protocol.packets.Packet11ChatMessage;
 import fr.skyforce77.towerminer.protocol.packets.Packet12Popup;
 import fr.skyforce77.towerminer.protocol.packets.Packet1Disconnecting;
+import fr.skyforce77.towerminer.protocol.packets.Packet24ServerPopup;
 import fr.skyforce77.towerminer.protocol.packets.Packet4RoundFinished;
 import fr.skyforce77.towerminer.protocol.packets.Packet5UpdateInfos;
+import fr.skyforce77.towerminer.server.Server;
 import fr.skyforce77.towerminer.server.chat.ChatColor;
 import fr.skyforce77.towerminer.server.match.Match;
 import fr.skyforce77.towerminer.server.match.MatchManager;
+import fr.skyforce77.towerminer.server.save.TMImage;
 
 public class Player {
 
@@ -160,7 +168,7 @@ public class Player {
 		pa.sendConnectionUDP(c);
 	}
 	
-	public void sendObject(Object o, ReceivingThread thread) {
+	public void sendObject(Serializable o, ReceivingThread thread) {
 		BigSending.sendBigObject(o, getConnection(), thread);
 	}
 	
@@ -169,5 +177,21 @@ public class Player {
 		p.gold = gold;
 		p.life = life;
 		p.sendConnectionTCP(c);
+	}
+	
+	public void sendServerPopup() {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try {
+			ImageIO.write(((TMImage)Server.storage.getObject("icon")).getImage(), "png", baos);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+        BigSending.sendBigObject(baos.toByteArray(), c, new ReceivingThread() {
+			@Override
+			public void run(int objectid) {
+				new Packet24ServerPopup(Server.storage.getString("name"), new String[]{Server.storage.getString("motd"), "TMServer "+Server.version}, objectid, 15000).sendConnectionTCP(c);
+			}
+		});
 	}
 }

@@ -1,6 +1,7 @@
 package fr.skyforce77.towerminer.server.match;
 
 import java.awt.Point;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -99,7 +100,7 @@ public class Match {
 			blue.sendUDP(p);
 	}
 	
-	public void sendObject(Object object, ReceivingThread thread) {
+	public void sendObject(Serializable object, ReceivingThread thread) {
 		if(red != null)
 			red.sendObject(object, thread);
 		if(blue != null)

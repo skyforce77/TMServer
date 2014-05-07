@@ -30,14 +30,7 @@ public class Argument {
 	}
 	
 	public ChatModel getRender() {
-		String s = "text";
-		
-		if(type.equals(ArgumentType.Integer)) {
-			s = "number";
-		} else if(type.equals(ArgumentType.Boolean)) {
-			s = "true/false";
-		}
-		
+		String s = type.getDisplay();
 		ChatModel model;
 		if(optional) {
 			model = new ChatModel("["+name+"]");
@@ -52,20 +45,21 @@ public class Argument {
 		return type;
 	}
 	
-	enum ArgumentType {
+	static class ArgumentType {
 		
-		String(0),
-		Integer(1),
-		Boolean(2);
+		public static ArgumentType String = new ArgumentType("text");
+		public static ArgumentType Url = new ArgumentType("url");
+		public static ArgumentType Integer = new ArgumentType("number");
+		public static ArgumentType Boolean = new ArgumentType("true/false");
 		
-		private int id;
+		private String display;
 		
-		private ArgumentType(int id) {
-			this.id = id;
+		public ArgumentType(String display) {
+			this.display = display;
 		}
 		
-		public int getId() {
-			return id;
+		public String getDisplay() {
+			return display;
 		}
 	}
 }

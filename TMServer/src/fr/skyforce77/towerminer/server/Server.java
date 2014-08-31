@@ -234,7 +234,7 @@ public class Server implements PacketListener, ConnectionListener{
 				return;
 			Player pl = PlayerManager.getPlayer(c.getID());
 			Match m = pl.getMatch();
-			String msg1 = ((ChatModel)pack11.getMessage().getModels().toArray()[1]).getText().replaceFirst(": ", "");
+			String msg1 = pack11.getMessage().toString();
 			if(msg1.startsWith("/")) {
 				String label = msg1.replaceFirst("/", "").split(" ")[0];
 				CommandManager.onCommandTyped(pl, label, msg1.replaceFirst("/"+label, "").replaceFirst(" ", "").split(" "));

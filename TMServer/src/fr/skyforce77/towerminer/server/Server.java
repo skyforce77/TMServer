@@ -31,6 +31,7 @@ import fr.skyforce77.towerminer.protocol.packets.Packet15ServerInfos;
 import fr.skyforce77.towerminer.protocol.packets.Packet18ParticleEffect;
 import fr.skyforce77.towerminer.protocol.packets.Packet1Disconnecting;
 import fr.skyforce77.towerminer.protocol.packets.Packet20EntityData;
+import fr.skyforce77.towerminer.protocol.packets.Packet22PluginMessage;
 import fr.skyforce77.towerminer.protocol.packets.Packet2BigSending;
 import fr.skyforce77.towerminer.protocol.packets.Packet3Action;
 import fr.skyforce77.towerminer.protocol.packets.Packet6EntityCreate;
@@ -271,6 +272,13 @@ public class Server implements PacketListener, ConnectionListener{
 		}
 		else if(p.getId() == 14) {
 			new Packet15ServerInfos(((Packet14ServerPing)p).name, storage.getString("motd")).sendConnectionTCP(c);
+		}
+		else if(p.getId() == 22) {
+			Player pl = PlayerManager.getPlayer(c.getID());
+			Player an = pl.getMatch().getAnother(pl);
+			Packet22PluginMessage pm = (Packet22PluginMessage)p;
+			if(an != null)
+				an.sendTCP(pm);
 		}
 	}
 

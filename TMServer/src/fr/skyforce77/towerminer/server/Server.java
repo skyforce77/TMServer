@@ -140,7 +140,7 @@ public class Server implements PacketListener, ConnectionListener{
 				}
 
 				new Packet3Action("sendingmap").sendConnectionTCP(c);
-				BigSending.sendBigObject(pl.getMatch().map, c, new ReceivingThread() {
+				new BigSending(pl.getMatch().map, c, new ReceivingThread() {
 					@Override
 					public void run(int objectid) {
 						new Packet3Action("finishedsendingmap", (byte)objectid).sendConnectionTCP(c);

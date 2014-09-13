@@ -169,7 +169,7 @@ public class Player {
 	}
 	
 	public void sendObject(Serializable o, ReceivingThread thread) {
-		BigSending.sendBigObject(o, getConnection(), thread);
+		new BigSending(o, getConnection(), thread);
 	}
 	
 	public void updateInformations() {
@@ -187,7 +187,7 @@ public class Player {
 			e.printStackTrace();
 		}
 
-        BigSending.sendBigObject(baos.toByteArray(), c, new ReceivingThread() {
+        new BigSending(baos.toByteArray(), c, new ReceivingThread() {
 			@Override
 			public void run(int objectid) {
 				new Packet24ServerPopup(Server.storage.getString("name"), new String[]{Server.storage.getString("motd"), "TMServer "+Server.version}, objectid, 15000).sendConnectionTCP(c);

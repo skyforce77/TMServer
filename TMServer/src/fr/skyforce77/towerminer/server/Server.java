@@ -35,15 +35,16 @@ import fr.skyforce77.towerminer.protocol.packets.Packet22PluginMessage;
 import fr.skyforce77.towerminer.protocol.packets.Packet2BigSending;
 import fr.skyforce77.towerminer.protocol.packets.Packet3Action;
 import fr.skyforce77.towerminer.protocol.packets.Packet6EntityCreate;
+import fr.skyforce77.towerminer.protocol.packets.Packet8EntityRemove;
 import fr.skyforce77.towerminer.protocol.packets.Packet9MouseClick;
+import fr.skyforce77.towerminer.protocol.save.TMImage;
+import fr.skyforce77.towerminer.protocol.save.TMStorage;
 import fr.skyforce77.towerminer.ressources.RessourcesManager;
 import fr.skyforce77.towerminer.server.chat.ChatColor;
 import fr.skyforce77.towerminer.server.commands.CommandManager;
 import fr.skyforce77.towerminer.server.match.Match;
 import fr.skyforce77.towerminer.server.players.Player;
 import fr.skyforce77.towerminer.server.players.PlayerManager;
-import fr.skyforce77.towerminer.server.save.TMImage;
-import fr.skyforce77.towerminer.server.save.TMStorage;
 import fr.skyforce77.towerminer.server.threads.MainThread;
 
 public class Server implements PacketListener, ConnectionListener{
@@ -195,13 +196,19 @@ public class Server implements PacketListener, ConnectionListener{
 					}
 				}
 				if(pack9.modifier == 16) {
-					pl.setGolds(pl.getGolds() - EntityTypes.turrets.get(pack9.selected).getPrice());
-					EntityTypes type = EntityTypes.turrets.get(pack9.selected);
+					EntityTypes type = EntityTypes.getType(pack9.selected);
+					if(pl.getGolds() < type.getPrice()) {
+						pl.sendMessage(ChatColor.RED+"You can't place this turret");
+						return;
+					}
+					pl.setGolds(pl.getGolds() - type.getPrice());
 					try {
 						String s = m.getRed().equals(pl) ? "menu.mp.red" : "menu.mp.blue";
-						Turret tu = (Turret)type.getEntityClass().getConstructor(EntityTypes.class, Point.class, String.class).newInstance(EntityTypes.turrets.get(pack9.selected), new Point(pack9.x,pack9.y-1), s);
+						Turret tu = (Turret)type.getEntityClass().getConstructor(EntityTypes.class, Point.class, String.class).newInstance(type, new Point(pack9.x,pack9.y-1), s);
+						Color col = m.getRed().equals(pl) ? Color.ORANGE : Color.CYAN;
+						tu.setColor(col);
 						m.turrets.add(tu);
-						m.sendTCP(new Packet6EntityCreate(tu.getUUID(), tu.getType().getId(), tu.getBlockLocation(), tu.getOwner()));
+						m.sendTCP(new Packet6EntityCreate(tu.getUUID(), tu.getType().getId(), new Point(pack9.x,pack9.y-1), tu.getOwner()));
 						m.sendObject(tu, new ObjectReceiver.ReceivingThread() {
 							@Override
 							public void run(int objectid) {
@@ -222,10 +229,13 @@ public class Server implements PacketListener, ConnectionListener{
 					if(aimed != null) {
 						pl.setGolds(pl.getGolds() + (int)(aimed.getCost()*0.75));
 						m.turrets.remove(aimed);
+						Packet8EntityRemove per = new Packet8EntityRemove();
+						per.entity = aimed.getUUID();
+						m.sendTCP(per);
 					}
 				}
 			} else {
-				pl.sendTCP(new Packet18ParticleEffect(pack9.x*48+24, pack9.y*48-24, Color.BLACK.getRGB(), 0));
+				pl.sendTCP(new Packet18ParticleEffect(pack9.x*48+24, pack9.y*48-24, Color.BLUE.getRGB(), 0));
 				pl.sendMessage(ChatColor.RED+"You can't play without partner/rival");
 			}
 		}
@@ -293,6 +303,7 @@ public class Server implements PacketListener, ConnectionListener{
 			System.out.println("Player "+p.getClientName()+" disconnected");
 			m.getAnother(p).kick("Your partner disconnected");
 		}
+		c.close();
 	}
 
 }

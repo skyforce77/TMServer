@@ -1,12 +1,12 @@
 package fr.skyforce77.towerminer.server.commands;
 import java.awt.image.BufferedImage;
 
+import fr.skyforce77.towerminer.protocol.save.TMImage;
 import fr.skyforce77.towerminer.ressources.RessourcesManager;
 import fr.skyforce77.towerminer.server.Server;
 import fr.skyforce77.towerminer.server.chat.ChatColor;
 import fr.skyforce77.towerminer.server.commands.Argument.ArgumentType;
 import fr.skyforce77.towerminer.server.players.Player;
-import fr.skyforce77.towerminer.server.save.TMImage;
 
 public class CommandSetIcon extends Command {
 

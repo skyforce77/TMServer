@@ -20,11 +20,11 @@ import fr.skyforce77.towerminer.protocol.packets.Packet1Disconnecting;
 import fr.skyforce77.towerminer.protocol.packets.Packet24ServerPopup;
 import fr.skyforce77.towerminer.protocol.packets.Packet4RoundFinished;
 import fr.skyforce77.towerminer.protocol.packets.Packet5UpdateInfos;
+import fr.skyforce77.towerminer.protocol.save.TMImage;
 import fr.skyforce77.towerminer.server.Server;
 import fr.skyforce77.towerminer.server.chat.ChatColor;
 import fr.skyforce77.towerminer.server.match.Match;
 import fr.skyforce77.towerminer.server.match.MatchManager;
-import fr.skyforce77.towerminer.server.save.TMImage;
 
 public class Player {
 
@@ -148,6 +148,7 @@ public class Player {
 	
 	public void kick(String message) {
 		new Packet1Disconnecting(message).sendConnectionTCP(c);
+		c.close();
 	}
 	
 	public void sendServerMessage(String message) {

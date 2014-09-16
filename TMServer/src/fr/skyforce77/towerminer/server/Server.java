@@ -223,7 +223,7 @@ public class Server implements PacketListener, ConnectionListener{
 				} else if(pack9.modifier == 4) {
 					if(aimed != null && aimed.getPrice() <= pl.getGolds()) {
 						pl.setGolds(pl.getGolds() - aimed.getPrice());
-						aimed.addData();
+						aimed.addLevel();
 					}
 				} else if(pack9.modifier == 8) {
 					if(aimed != null) {

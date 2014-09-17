@@ -30,7 +30,7 @@ import fr.skyforce77.towerminer.protocol.packets.Packet14ServerPing;
 import fr.skyforce77.towerminer.protocol.packets.Packet15ServerInfos;
 import fr.skyforce77.towerminer.protocol.packets.Packet18ParticleEffect;
 import fr.skyforce77.towerminer.protocol.packets.Packet1Disconnecting;
-import fr.skyforce77.towerminer.protocol.packets.Packet20EntityData;
+import fr.skyforce77.towerminer.protocol.packets.Packet20EntityStorage;
 import fr.skyforce77.towerminer.protocol.packets.Packet22PluginMessage;
 import fr.skyforce77.towerminer.protocol.packets.Packet2BigSending;
 import fr.skyforce77.towerminer.protocol.packets.Packet3Action;
@@ -204,16 +204,15 @@ public class Server implements PacketListener, ConnectionListener{
 					pl.setGolds(pl.getGolds() - type.getPrice());
 					try {
 						String s = m.getRed().equals(pl) ? "menu.mp.red" : "menu.mp.blue";
-						Turret tu = (Turret)type.getEntityClass().getConstructor(EntityTypes.class, Point.class, String.class).newInstance(type, new Point(pack9.x,pack9.y-1), s);
+						final Turret tu = (Turret)type.getEntityClass().getConstructor(EntityTypes.class, Point.class, String.class).newInstance(type, new Point(pack9.x,pack9.y-1), s);
 						Color col = m.getRed().equals(pl) ? Color.ORANGE : Color.CYAN;
 						tu.setColor(col);
 						m.turrets.add(tu);
 						m.sendTCP(new Packet6EntityCreate(tu.getUUID(), tu.getType().getId(), new Point(pack9.x,pack9.y-1), tu.getOwner()));
-						m.sendObject(tu, new ObjectReceiver.ReceivingThread() {
+						m.sendObject(tu.getData(), new ObjectReceiver.ReceivingThread() {
 							@Override
 							public void run(int objectid) {
-								Packet20EntityData pe = new Packet20EntityData();
-								pe.eid = objectid;
+								Packet20EntityStorage pe = new Packet20EntityStorage(tu.getUUID(), objectid);
 								m.sendTCP(pe);
 							}
 						});

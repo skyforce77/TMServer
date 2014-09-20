@@ -94,11 +94,13 @@ public class Server implements PacketListener, ConnectionListener{
 
 		CommandManager.createCommands();
 		instance = new Server();
+		if(!Connect.initServer()) {
+			System.err.println("Can't be launched, error occured");
+		}
 		try {
-			Connect.initServer();
 			new MainThread().start();
 		} catch(Exception e) {
-			System.out.println("Can't be launched, error occured");
+			System.err.println("Can't be launched, error occured");
 		}
 		ListenersManager.register(instance);
 		System.out.println("Successfully launched");
